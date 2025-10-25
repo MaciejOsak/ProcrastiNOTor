@@ -1,17 +1,22 @@
-from tkinter import *
-from tkinter import ttk
 import time
 import psutil
+import sys
+import winreg
+import os
+import xml.etree.ElementTree as ET
 
+from tkinter import *
+from tkinter import ttk
+
+
+MINUTE: int = 60
+METADATA_DOC = ET.parse("metadata/meta.xml")
+META = METADATA_DOC.getroot()
 
 registered_running_time_wasters: list = []
-
 rrtw_timers: list = []
 
-minute: int = 60
-
-
-def run_app(time_wasters: list, maximum_time_waste: int = 30 * minute):
+def run_app(time_wasters: list, maximum_time_waste: int = 30 * MINUTE):
     global root
     while True:
         for process in psutil.process_iter(["pid", "name", "username"]):
@@ -32,7 +37,22 @@ def run_app(time_wasters: list, maximum_time_waste: int = 30 * minute):
 
                         popup.mainloop()
 
-        time.sleep(2)
+        time.sleep(1 * MINUTE)
+
+
+def add_to_startup():
+
+    cmd = f'"{sys.executable}" "{os.path.abspath(__file__)}"'
+
+    key = winreg.HKEY_CURRENT_USER
+    subkey = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
+    with winreg.OpenKey(key, subkey, 0, winreg.KEY_SET_VALUE) as registry_key:
+        winreg.SetValueEx(registry_key, "ProcrastiNOTor", 0, winreg.REG_SZ, cmd)
+        winreg.CloseKey(key)
+
+    META[0].text = "TRUE"
+    METADATA_DOC.write("metadata/meta.xml")
 
 
 def assert_time_wasters(value):
@@ -47,7 +67,9 @@ def assert_time_wasters(value):
                                                 foreground="red")
         improper_time_wasters_error.grid(column=1, row=3)
         return False
+    improper_time_wasters_error.grid_remove()
     return True
+
 
 def assert_minute_limit(value):
     global improper_minute_limit_error
@@ -63,6 +85,7 @@ def assert_minute_limit(value):
                                                 foreground="red")
         improper_minute_limit_error.grid(column=1, row=2)
         return False
+    improper_minute_limit_error.grid_remove()
     return True
 
 
@@ -84,7 +107,10 @@ def try_launch():
         root.destroy()
         run_app(time_wasters=time_wasters, maximum_time_waste=int(waster_minute_limit))
 
-time.sleep(10)
+
+if META[0].text == "FALSE":
+    add_to_startup()
+
 
 root = Tk()
 frame = ttk.Frame(root, width=400, height=250)
