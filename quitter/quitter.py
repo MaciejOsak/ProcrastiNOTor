@@ -1,13 +1,12 @@
 import time
-import tkinter as ttk
-
 import psutil
 
 from assertions import *
 from constants import MINUTE
-from exceptions import *
 from exceptions_handling import *
 
+
+ACTIVATED: bool = False
 
 assets: dict
 registered_running_time_wasters: list = []
@@ -16,24 +15,27 @@ rrtw_timers: list = []
 
 def get_display() -> dict:
 
-    root = ttk.Tk()
-    frame = ttk.Frame(root, width=400, height=250)
+    root = tk.Tk()
+    frame = tk.Frame(root, width=400, height=250)
     frame.grid()
 
-    time_wasters_label = ttk.Label(root, text="Please enter your main enemies below")
-    time_wasters_label.grid(column=0, row=0)
+    go_back_button = tk.Button(root, text="Go back", command=turn_quitter_off, width=50)
+    go_back_button.grid(column=1, row=0)
 
-    time_wasters_enter = ttk.Entry(root)
-    time_wasters_enter.grid(column=0, row=1)
+    time_wasters_label = tk.Label(root, text="Please enter your main enemies below")
+    time_wasters_label.grid(column=0, row=1)
 
-    waster_minute_limit_label = ttk.Label(root, text="Please enter maximum time of procrastination below")
-    waster_minute_limit_label.grid(column=1, row=0)
+    time_wasters_enter = tk.Entry(root)
+    time_wasters_enter.grid(column=0, row=2)
 
-    waster_minute_limit_enter = ttk.Entry(root)
-    waster_minute_limit_enter.grid(column=1, row=1)
+    waster_minute_limit_label = tk.Label(root, text="Please enter maximum time of procrastination below")
+    waster_minute_limit_label.grid(column=1, row=2)
 
-    launching_button = ttk.Button(root, text="Stop wasting time!", command=try_launch, width=50)
-    launching_button.grid(column=0, row=2, columnspan=2, pady=20)
+    waster_minute_limit_enter = tk.Entry(root)
+    waster_minute_limit_enter.grid(column=1, row=3)
+
+    launching_button = tk.Button(root, text="Stop wasting time!", command=try_launch, width=50)
+    launching_button.grid(column=0, row=3, columnspan=2, pady=20)
 
     incorrect_input_label = None
     incorrect_input_text: str = ""
@@ -65,6 +67,12 @@ def format_time_wasters(wasters: str):
         if wasters[i][(len(wasters[i]) - 4):] != ".exe":
             wasters[i] = f"{wasters[i]}.exe"
     return wasters
+
+
+def turn_quitter_off():
+    global assets, ACTIVATED
+    ACTIVATED = False
+    assets["root"].destroy()
 
 
 def try_launch():
@@ -99,9 +107,9 @@ def run_app(time_wasters: list, maximum_time_waste: int = 30 * MINUTE):
 
                         process.terminate()
 
-                        popup = ttk.Tk()
+                        popup = tk.Tk()
 
-                        popup_label = ttk.Label(popup, text="Get down to business already!", foreground="red")
+                        popup_label = tk.Label(popup, text="Get down to business already!", foreground="red")
                         popup_label.pack()
 
                         popup.mainloop()
@@ -110,10 +118,12 @@ def run_app(time_wasters: list, maximum_time_waste: int = 30 * MINUTE):
 
 
 def main():
-    global assets
+    global assets, ACTIVATED
 
     assets = get_display()
+    ACTIVATED = True
     assets["root"].mainloop()
+    return
 
 
 if __name__ == "__main__":
